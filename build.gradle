@@ -1,0 +1,118 @@
+buildscript {
+    repositories {
+
+    }
+    dependencies {
+        classpath 'com.github.xcfrg:MixinGradle:0.6-SNAPSHOT'
+    }
+}
+
+plugins {
+    id "java"
+    id "com.github.johnrengelman.shadow" version "6.1.0"
+    id "net.minecraftforge.gradle.forge" version "6f53277"
+}
+apply plugin: 'org.spongepowered.mixin'
+
+version = "1.0"
+group = "cn.duoduo"
+archivesBaseName = "ForgeModHider"
+
+sourceCompatibility = targetCompatibility = 1.8
+compileJava.options.encoding = 'UTF-8'
+
+minecraft {
+    version = "1.8.9-11.15.1.2318-1.8.9"
+    runDir = "run"
+    mappings = "stable_22"
+    makeObfSourceJar = false
+    clientJvmArgs += ["-Dfml.coreMods.load=cn.duoduo.modhider.CoreMod", "-Xmx1024m -Xms1024m", "-Ddev-mode"]
+}
+
+configurations {
+    // Creates an extra configuration that implements `implementation` to be used later as the configuration that shades libraries
+    include
+    implementation.extendsFrom(include)
+}
+
+repositories {
+    // Add maven repositories to your buildscript so that they can be used to resolve dependencies
+    // maven "https://repo1.maven.org/maven2/"
+    maven { url = "https://repo.spongepowered.org/repository/maven-public/" }
+}
+
+dependencies {
+    // How to normally add a dependency (If you don't want it to be added to the jar)
+    // implementation "com.example:example:1.0.0"
+    // If you would like to include it (have the library inside your jar) instead use
+    // include "com.example:example:1.0.0"
+
+    include("org.spongepowered:mixin:0.7.11-SNAPSHOT") {
+        transitive = false
+        exclude module: "guava"
+        exclude module: "commons-io"
+        exclude module: "gson"
+        exclude module: "launchwrapper"
+        exclude module: "log4j-core"
+    }
+    annotationProcessor("org.spongepowered:mixin:0.7.11-SNAPSHOT")
+}
+
+/**
+ * This task simply replaces the `${version}` and `${mcversion}` properties in the mcmod.info with the data from Gradle
+ */
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+
+        // replace version and mcversion
+        expand 'version': project.version, 'mcversion': project.minecraft.version
+    }
+
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+/**
+ * This simply moves resources so they can be accessed at runtime, Forge is quite weird isn't it
+ */
+sourceSets {
+    main {
+        output.resourcesDir = java.outputDir
+    }
+}
+
+jar {
+    manifest.attributes(
+            "FMLCorePlugin": "cn.duoduo.modhider.CoreMod",
+            "FMLCorePluginContainsFMLMod": true,
+            "ForceLoadAsMod": true,
+            "MixinConfigs": "mixins.modhider.json",
+            "ModSide": "CLIENT",
+            "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+            "TweakOrder": "0",
+    )
+
+    enabled = false
+}
+
+// This adds support to ("embed", "shade", "include") libraries into our JAR
+shadowJar {
+    archiveClassifier.set('')
+    configurations = [project.configurations.include]
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
+}
+
+reobf {
+    shadowJar {}
+}
+
+jar.dependsOn shadowJar
+jar.enabled = false

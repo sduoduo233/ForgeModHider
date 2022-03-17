@@ -1,0 +1,11 @@
+{
+  "compatibilityLevel": "JAVA_8",
+  "package": "cn.duoduo.modhider.mixins",
+  "mixins": [
+    "MixinMinecraft",
+    "MixinNetworkManager",
+    "MixinModList"
+  ],
+  "client": [],
+  "server": []
+}

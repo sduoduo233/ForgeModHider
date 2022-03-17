@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "modhider",
+    "name": "ForgeModHider",
+    "description": "Hide client side mods",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "duoduo"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
