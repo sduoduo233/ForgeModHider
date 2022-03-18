@@ -2,6 +2,7 @@ package cn.duoduo.modhider.mixins;
 
 import cn.duoduo.modhider.config.ConfigManager;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.handshake.FMLHandshakeMessage;
 import org.apache.logging.log4j.LogManager;
@@ -27,6 +28,8 @@ public abstract class MixinModList {
 
     @Inject(method = "toBytes", at = @At(value = "HEAD"), cancellable = true, remap = false)
     public void toBytes(ByteBuf buffer, CallbackInfo callbackInfo) {
+        if (Minecraft.getMinecraft().isSingleplayer()) return;
+
         callbackInfo.cancel();
 
         ArrayList<Map.Entry<String, String>> shownTags = new ArrayList<>();
@@ -43,8 +46,8 @@ public abstract class MixinModList {
 
         for (Map.Entry<String, String> modTag : shownTags) {
             logger.info(String.format("SendModList: %s %s", modTag.getKey(), modTag.getValue()));
-            ByteBufUtils.writeUTF8String(buffer, (String) modTag.getKey());
-            ByteBufUtils.writeUTF8String(buffer, (String) modTag.getValue());
+            ByteBufUtils.writeUTF8String(buffer, modTag.getKey());
+            ByteBufUtils.writeUTF8String(buffer, modTag.getValue());
         }
 
     }
